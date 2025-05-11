@@ -1,24 +1,49 @@
-name: CI for Notepad++
+name: CI Workflow
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - master  # Run on push to master branch
   pull_request:
-    branches: [ main ]
+    branches:
+      - master  # Run on PR to master branch
 
 jobs:
   build:
-    runs-on: windows-latest
-
+    runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v2
+    
+    - name: Set up .NET Core
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '5.0'
 
-      - name: Set up MSBuild
-        uses: microsoft/setup-msbuild@v1.3.1
+    - name: Restore Dependencies
+      run: dotnet restore
+    
+    - name: Build Project
+      run: dotnet build
 
-      - name: Restore NuGet packages
-        run: nuget restore notepadPlus.vcxproj
+    - name: Run Unit Tests
+      run: dotnet test
 
-      - name: Build project
-        run: msbuild notepadPlus.vcxproj /p:Configuration=Release
+    # Implementing Static Analysis (SAST) tool: Example with Bandit (Python-based)
+    - name: Run Static Analysis with Bandit
+      run: |
+        pip install bandit
+        bandit -r .
+    
+    # Implementing Secrets Scanning: Example using TruffleHog
+    - name: Run Secrets Scanning with TruffleHog
+      run: |
+        pip install truffleHog
+        trufflehog --json .  # This will scan your repo for any exposed secrets
+
+    # Linting or additional security checks (e.g., SQL injection prevention, etc.)
+    - name: Run Linter or additional security checks
+      run: |
+        # Example: SQL injection check (dummy tool, replace with actual)
+        python sql_injection_checker.py .
